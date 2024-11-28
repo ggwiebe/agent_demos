@@ -1,0 +1,108 @@
+agent_class:
+  class_name: FunctionCallingAgent
+  module_name: function_calling_agent
+agent_description: Has access to the product documentation, transcripts from our customer
+  service call center and information about customer's recent orders.
+agent_name: CustomerServiceTranscripts
+endpoint_name: agents_ep-agent_demo-customer_bot_function_calling_agent
+input_example:
+  messages:
+  - content: What is the top customer issue?
+    role: user
+llm_config:
+  llm_endpoint_name: agents-demo-gpt4o
+  llm_parameters:
+    max_tokens: 1500
+    temperature: 0.01
+  llm_system_prompt_template: You are a helpful assistant that answers questions by
+    calling tools.  Provide responses ONLY based on the outputs from tools.  Ask follow
+    up questions if needed.  If don't get relevant results from the retriever tool
+    while using filters, try to call the retriever tool again with JUST a query and
+    no filters!
+  tools:
+  - retriever_filter_parameter_prompt: Optional filters to apply to the search. An
+      array of objects, each specifying a field name and the filters to apply to that
+      field.  ONLY use the LIKE type of filter if you have a string to query in product_category,
+      etc.  Prefer to query WITHOUT filters.
+    retriever_query_parameter_prompt: query to look up in the product documentation
+    tool_class_name: VectorSearchRetriever
+    tool_description_prompt: Search the production documentation for product information.  If
+      you need to know how to troubleshoot, what a product does, common issues, etc,
+      use this tool.
+    tool_input_json_schema:
+      function:
+        description: Search the production documentation for product information.  If
+          you need to know how to troubleshoot, what a product does, common issues,
+          etc, use this tool.
+        name: retrieve_product_docs
+        parameters:
+          additionalProperties: false
+          properties:
+            filters:
+              default: null
+              description: Optional filters to apply to the search. An array of objects,
+                each specifying a field name and the filters to apply to that field.  ONLY
+                use the LIKE type of filter if you have a string to query in product_category,
+                etc.  Prefer to query WITHOUT filters.
+              items:
+                additionalProperties: false
+                properties:
+                  field:
+                    description: The field to apply the filter to.
+                    enum:
+                    - product_id
+                    type: string
+                  filter:
+                    anyOf:
+                    - type: string
+                    - type: number
+                    - items:
+                        anyOf:
+                        - type: string
+                        - type: number
+                      type: array
+                    - additionalProperties: false
+                      maxProperties: 1
+                      minProperties: 1
+                      properties:
+                        <:
+                          type: number
+                        <=:
+                          type: number
+                        '>':
+                          type: number
+                        '>=':
+                          type: number
+                        LIKE:
+                          type: string
+                        NOT:
+                          anyOf:
+                          - type: string
+                          - type: number
+                      type: object
+                required:
+                - field
+                - filter
+                type: object
+              type: array
+            query:
+              default: null
+              description: query to look up in the product documentation
+              type: string
+          required:
+          - query
+          type: object
+      type: function
+    tool_name: retrieve_product_docs
+    vector_search_index: agents_demo.data.product_docs_index
+    vector_search_parameters:
+      num_results: 1
+      query_type: ann
+    vector_search_schema:
+      additional_metadata_columns: []
+      chunk_text: indexed_doc
+      document_uri: product_id
+      filterable_columns:
+      - product_id
+      primary_key: product_id
+    vector_search_threshold: 0.0

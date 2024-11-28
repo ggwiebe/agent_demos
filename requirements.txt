@@ -1,0 +1,11 @@
+databricks-agents
+databricks-vectorsearch
+databricks-sdk[openai]
+git+https://github.com/unitycatalog/unitycatalog.git#subdirectory=ai/core
+git+https://github.com/unitycatalog/unitycatalog.git#subdirectory=ai/integrations/openai
+pydantic
+tabulate
+pandas
+mlflow
+databricks-connect
+tiktoken
